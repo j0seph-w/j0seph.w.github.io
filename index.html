@@ -1,0 +1,897 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Themis</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+            font-size: 16px;
+        }
+        
+        body {
+            background-color: #A4BF9E;
+            color: #0D3D49;
+        }
+        
+        .container {
+            max-width: 480px;
+            margin: 0 auto;
+            background-color: #A4BF9E;
+            min-height: 100vh;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            position: relative;
+            overflow: hidden; /* Prevent content from overflowing */
+        }
+        
+        .tab-nav {
+            display: flex;
+            background-color: #0D3D49;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        .tab-btn {
+            flex: 1;
+            padding: 15px 0;
+            background: none;
+            border: none;
+            color: rgba(255, 255, 255, 0.7);
+            font-weight: bold;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-bottom: 3px solid transparent;
+        }
+        
+        .tab-btn.active {
+            color: #A4BF9E;
+            border-bottom: 3px solid #A4BF9E;
+        }
+        
+        /* Tab content container */
+        .tabs-container {
+            display: flex;
+            width: 300%; /* 3 tabs, each 100% width */
+            transition: transform 0.3s ease;
+        }
+        
+        .tab-content {
+            flex: 0 0 33.333%; /* Each tab takes 1/3 of container width */
+            width: 33.333%;
+            padding: 20px;
+            min-height: calc(100vh - 54px);
+        }
+        
+        /* Person input */
+        .person-input {
+            display: flex;
+            margin-bottom: 12px;
+        }
+        
+        .person-input input {
+            flex: 1;
+            padding: 10px;
+            border: 2px solid #0D3D49;
+            border-radius: 4px;
+            margin-right: 8px;
+        }
+        
+        .person-input button {
+            background-color: #0D3D49;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 0 16px;
+            cursor: pointer;
+        }
+        
+        /* Person bubbles */
+        .people-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        
+        .person-bubble {
+            display: flex;
+            align-items: center;
+            background-color: #f3f4f6;
+            border-radius: 20px;
+            padding: 4px 12px 4px 4px;
+        }
+        
+        .initials {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            margin-right: 6px;
+        }
+        
+        /* Colors for bubbles */
+        .bg-red-500 { background-color: #ef4444; }
+        .bg-blue-500 { background-color: #3b82f6; }
+        .bg-green-500 { background-color: #10b981; }
+        .bg-yellow-500 { background-color: #f59e0b; }
+        .bg-purple-500 { background-color: #8b5cf6; }
+        .bg-pink-500 { background-color: #ec4899; }
+        .bg-indigo-500 { background-color: #6366f1; }
+        .bg-orange-500 { background-color: #f97316; }
+        .bg-teal-500 { background-color: #14b8a6; }
+
+        /* Items list */
+        .items-container {
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        
+        .item {
+            position: relative;
+            padding: 12px;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .item:last-child {
+            border-bottom: none;
+        }
+        
+        .item-details {
+            display: flex;
+            justify-content: space-between;
+            cursor: pointer;
+        }
+        
+        .item-name {
+            font-weight: normal;
+        }
+        
+        .item-quantity {
+            font-weight: bold;
+            margin-right: 4px;
+        }
+        
+        .item-price {
+            font-weight: bold;
+        }
+        
+        /* Assignment indicators */
+        .assignment-indicators {
+            display: flex;
+            margin-top: 8px;
+            flex-wrap: wrap;
+            gap: 4px;
+        }
+        
+        .all-indicator {
+            background-color: #e5e7eb;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+        }
+        
+        .person-indicator {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        
+        /* Assignment popup */
+        .assignment-popup {
+            position: absolute;
+            left: 0;
+            right: 0;
+            margin-top: 8px;
+            background-color: white;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            padding: 12px;
+            z-index: 10;
+        }
+        
+        .popup-section {
+            margin-bottom: 12px;
+        }
+        
+        .popup-section-title {
+            font-size: 12px;
+            text-transform: uppercase;
+            color: #666;
+            margin-bottom: 8px;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 3px;
+        }
+        
+        .popup-divider {
+            height: 1px;
+            background-color: #ddd;
+            margin: 12px 0;
+        }
+        
+        .popup-bubbles {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        
+        .popup-bubble {
+            cursor: pointer;
+            width: 34px;
+            height: 34px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .popup-none {
+            font-size: 12px;
+            color: #999;
+            font-style: italic;
+        }
+
+        /* Add these to your existing CSS */
+        .popup-header-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 3px;
+            padding-right: 28px; /* Add this line to provide space for the close button */
+        }
+
+        .popup-header-container .popup-section-title {
+            margin-bottom: 0;
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+
+        .popup-action-btn {
+            background: none;
+            border: none;
+            color: #3b82f6;
+            font-size: 12px;
+            font-weight: 500;
+            text-transform: uppercase;
+            cursor: pointer;
+            padding: 0;
+        }
+
+        .popup-action-btn:hover {
+            color: #2563eb;
+            text-decoration: underline;
+        }
+
+        .popup-close-btn {
+            position: absolute;
+            top: 4px; /* Adjusted from 8px to move it up slightly */
+            right: 8px;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: none;
+            border: none;
+            font-size: 18px;
+            line-height: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: #666;
+            z-index: 11;
+        }
+
+        .popup-close-btn:hover {
+            background-color: #f3f4f6;
+            color: #333;
+        }
+
+        /* Summary section */
+        .summary-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .person-info {
+            display: flex;
+            align-items: center;
+        }
+        
+        .total-row {
+            font-weight: bold;
+            background-color: #f3f4f6;
+        }
+        
+        .card {
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .btn {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+        
+        .btn:hover {
+            background-color: #2980b9;
+        }
+        
+        .list-item {
+            padding: 12px 0;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .list-item:last-child {
+            border-bottom: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container" id="container">
+        <div class="tab-nav">
+            <button class="tab-btn active" data-tab="0">1. Name</button>
+            <button class="tab-btn" data-tab="1">2. Split</button>
+            <button class="tab-btn" data-tab="2">3. Settle</button>
+        </div>
+        
+        <div class="tabs-container" id="tabsContainer">
+            <div id="tab0" class="tab-content">
+                <div class="person-input">
+                    <input type="text" id="personName" placeholder="Enter name">
+                    <button id="addPersonBtn">Add</button>
+                </div>
+                <div class="people-list" id="peopleList"></div>
+            </div>
+            
+            <div id="tab1" class="tab-content">
+                <div class="items-container" id="itemsContainer"></div>
+            </div>
+            
+            <div id="tab2" class="tab-content">
+                <div class="items-container" id="summaryContainer"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Data model
+        const app = {
+            people: [],
+            items: [
+                {'id': 0, 'quantity': 1, 'name': 'JUG Mango Lassi', 'price': 8.5}, 
+                {'id': 1, 'quantity': 6, 'name': 'Spicy Popadoms', 'price': 6}, 
+                {'id': 2, 'quantity': 4, 'name': 'Seekh Kebab', 'price': 8}, 
+                {'id': 3, 'quantity': 1, 'name': 'Chicken Tikka', 'price': 5.95}, 
+                {'id': 4, 'quantity': 1, 'name': 'Mutton Tikka', 'price': 5.95}, 
+                {'id': 5, 'quantity': 1, 'name': 'Lamb Chops', 'price': 10.95}, 
+                {'id': 6, 'quantity': 1, 'name': 'Dry Meat', 'price': 14}, 
+                {'id': 7, 'quantity': 2, 'name': 'Dry Meat (LRG)', 'price': 54}, 
+                {'id': 8, 'quantity': 1, 'name': 'Kara Chck Tik Msl', 'price': 13.5}, 
+                {'id': 9, 'quantity': 2, 'name': 'Peshwari Nan', 'price': 8}, 
+                {'id': 10, 'quantity': 1, 'name': 'Garlic Nan', 'price': 3.75}
+            ],
+            assignments: {},
+            activeItem: null,
+            colors: [
+                'bg-red-500', 'bg-blue-500', 'bg-green-500', 
+                'bg-yellow-500', 'bg-purple-500', 'bg-pink-500',
+                'bg-indigo-500', 'bg-orange-500', 'bg-teal-500'
+            ],
+            currentTab: 0
+        };
+
+        // DOM elements
+        const personNameInput = document.getElementById('personName');
+        const addPersonBtn = document.getElementById('addPersonBtn');
+        const peopleList = document.getElementById('peopleList');
+        const itemsContainer = document.getElementById('itemsContainer');
+        const summaryContainer = document.getElementById('summaryContainer');
+        const tabsContainer = document.getElementById('tabsContainer');
+        const tabButtons = document.querySelectorAll('.tab-btn');
+
+        // Initialize
+        renderPeople();
+        renderItems();
+        updateSummary();
+
+        // Event Listeners
+        addPersonBtn.addEventListener('click', addPerson);
+
+        personNameInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                addPerson();
+            }
+        });
+
+        // Add click event listeners to tab buttons
+        tabButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const tabIndex = parseInt(this.getAttribute('data-tab'));
+                switchToTab(tabIndex);
+            });
+        });
+
+        // Touch variables
+        let touchStartX = 0;
+        let touchEndX = 0;
+        const minSwipeDistance = 50; // Minimum distance for swipe to register
+
+        // Touch event handlers for swipe detection
+        tabsContainer.addEventListener('touchstart', function(e) {
+            touchStartX = e.touches[0].clientX;
+        }, false);
+
+        tabsContainer.addEventListener('touchend', function(e) {
+            touchEndX = e.changedTouches[0].clientX;
+            handleSwipe();
+        }, false);
+
+        // Prevent default touchmove behavior to avoid scrolling while swiping
+        tabsContainer.addEventListener('touchmove', function(e) {
+            // Calculate how far we've moved
+            const touchCurrentX = e.touches[0].clientX;
+            const diff = touchStartX - touchCurrentX;
+            
+            // If significant horizontal movement detected, prevent default scrolling
+            if (Math.abs(diff) > 10) {
+                e.preventDefault();
+                
+                // Optional: Add real-time dragging effect for better user experience
+                const movePercent = (diff / window.innerWidth) * 100;
+                const currentOffset = app.currentTab * 33.333;
+                
+                // Limit dragging to prevent overscrolling past the first or last tab
+                if ((app.currentTab === 0 && diff < 0) || (app.currentTab === 2 && diff > 0)) {
+                    // Resistance when pulling past the edges
+                    tabsContainer.style.transform = `translateX(-${currentOffset + movePercent/3}%)`;
+                } else {
+                    tabsContainer.style.transform = `translateX(-${currentOffset + movePercent}%)`;
+                }
+            }
+        }, { passive: false });
+
+        // Functions
+        function switchToTab(tabIndex) {
+            if (tabIndex < 0 || tabIndex > 2) return;
+            
+            app.currentTab = tabIndex;
+            
+            // Update active tab button
+            tabButtons.forEach((btn, index) => {
+                if (index === tabIndex) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
+            
+            // Slide to the selected tab
+            tabsContainer.style.transform = `translateX(-${tabIndex * 33.333}%)`;
+        }
+
+        function handleSwipe() {
+            const swipeDistance = touchEndX - touchStartX;
+            
+            if (swipeDistance < -minSwipeDistance) {
+                // Swipe left -> next tab
+                switchToTab(Math.min(app.currentTab + 1, 2));
+            } else if (swipeDistance > minSwipeDistance) {
+                // Swipe right -> previous tab
+                switchToTab(Math.max(app.currentTab - 1, 0));
+            } else {
+                // Return to current tab if swipe wasn't long enough
+                switchToTab(app.currentTab);
+            }
+        }
+
+        function addPerson() {
+            const name = personNameInput.value.trim();
+            if (!name) return;
+            
+            // Check for duplicate names
+            if (app.people.some(p => p.name.toLowerCase() === name.toLowerCase())) {
+                alert("This name already exists. Please use a different name.");
+                return;
+            }
+            
+            const newPerson = {
+                id: Date.now().toString(),
+                name: name,
+                color: app.colors[app.people.length % app.colors.length],
+                initials: getInitials(name)
+            };
+            console.log(newPerson);
+            
+            app.people.push(newPerson);
+            personNameInput.value = '';
+            
+            renderPeople();
+            updateSummary();
+        }
+
+        function getInitials(name) {
+            const parts = name.trim().split(/\s+/); // split on any amount of space
+            if (parts.length === 1) {
+                // Single name, return first 2 letters
+                return parts[0].substring(0, 2).toUpperCase();
+            } else {
+                // Multiple parts, get first letter of first two parts
+                return parts.slice(0, 2).map(part => part.charAt(0).toUpperCase()).join('');
+            }
+        }
+
+        function removePerson(personId) {
+            // Find the index of the person with the given ID
+            const personIndex = app.people.findIndex(person => person.id === personId);
+            
+            if (personIndex !== -1) {
+                // Remove the person from the array
+                app.people.splice(personIndex, 1);
+                
+                // Clear any assignments for this person
+                Object.keys(app.assignments).forEach(itemId => {
+                    if (app.assignments[itemId]?.includes(personId)) {
+                        app.assignments[itemId] = app.assignments[itemId].filter(id => id !== personId);
+                    }
+                });
+                
+                // Re-render the people list and update summary
+                renderPeople();
+                renderItems();
+                updateSummary();
+            }
+        }
+
+        function renderPeople() {
+            peopleList.innerHTML = '';
+            
+            app.people.forEach(person => {
+                const personElement = document.createElement('div');
+                personElement.className = 'person-bubble';
+                personElement.innerHTML = `
+                    <div class="initials ${person.color}">${person.initials}</div>
+                    <span>${person.name}</span>
+                `;
+                
+                // Add click event listener to remove this person
+                personElement.addEventListener('click', function() {
+                    removePerson(person.id);
+                });
+                
+                peopleList.appendChild(personElement);
+            });
+        }
+        
+        function renderItems() {
+            itemsContainer.innerHTML = '';
+            
+            app.items.forEach(item => {
+                const itemElement = document.createElement('div');
+                itemElement.className = 'item';
+                itemElement.dataset.id = item.id;
+                
+                // Item details row
+                const detailsDiv = document.createElement('div');
+                detailsDiv.className = 'item-details';
+                detailsDiv.innerHTML = `
+                    <div>
+                        <span class="item-quantity">${item.quantity}x</span>
+                        <span class="item-name">${item.name}</span>
+                    </div>
+                    <div class="item-price">£${item.price.toFixed(2)}</div>
+                `;
+                detailsDiv.addEventListener('click', () => toggleAssignment(item.id));
+                itemElement.appendChild(detailsDiv);
+                
+                // Assignment indicators
+                const assignedPeople = app.assignments[item.id] || [];
+                if (assignedPeople.length > 0) {
+                    const indicatorsDiv = document.createElement('div');
+                    indicatorsDiv.className = 'assignment-indicators';
+                    
+                    if (assignedPeople.length === app.people.length) {
+                        indicatorsDiv.innerHTML = '<div class="all-indicator">All</div>';
+                    } else {
+                        assignedPeople.forEach(personId => {
+                            const person = app.people.find(p => p.id === personId);
+                            if (person) {
+                                const indicator = document.createElement('div');
+                                indicator.className = `person-indicator ${person.color}`;
+                                indicator.textContent = person.initials;
+                                indicatorsDiv.appendChild(indicator);
+                            }
+                        });
+                    }
+                    
+                    itemElement.appendChild(indicatorsDiv);
+                }
+                
+                // Assignment popup (if active)
+                if (app.activeItem === item.id) {
+                    const popup = createAssignmentPopup(item.id);
+                    itemElement.appendChild(popup);
+                }
+                
+                itemsContainer.appendChild(itemElement);
+            });
+        }
+
+        function createAssignmentPopup(itemId) {
+            const popup = document.createElement('div');
+            popup.className = 'assignment-popup';
+            
+            // Add close button (X) in the corner
+            const closeButton = document.createElement('button');
+            closeButton.className = 'popup-close-btn';
+            closeButton.innerHTML = '&times;'; // × symbol
+            closeButton.addEventListener('click', () => {
+                app.activeItem = null;
+                renderItems();
+            });
+            popup.appendChild(closeButton);
+            
+            const assignedPeople = app.assignments[itemId] || [];
+            
+            // Assigned section
+            const assignedSection = document.createElement('div');
+            assignedSection.className = 'popup-section';
+            
+            // Create header container with title and clear button
+            const assignedHeaderContainer = document.createElement('div');
+            assignedHeaderContainer.className = 'popup-header-container';
+            
+            const assignedTitle = document.createElement('div');
+            assignedTitle.className = 'popup-section-title';
+            assignedTitle.textContent = 'Assigned';
+            assignedHeaderContainer.appendChild(assignedTitle);
+            
+            // Add Clear All button
+            if (assignedPeople.length > 0) {
+                const clearAllBtn = document.createElement('button');
+                clearAllBtn.className = 'popup-action-btn';
+                clearAllBtn.textContent = 'CLEAR ALL';
+                clearAllBtn.addEventListener('click', () => clearAllAssignments(itemId));
+                assignedHeaderContainer.appendChild(clearAllBtn);
+            }
+            
+            assignedSection.appendChild(assignedHeaderContainer);
+            
+            const assignedBubbles = document.createElement('div');
+            assignedBubbles.className = 'popup-bubbles';
+            
+            // If no one is assigned, show a message
+            if (assignedPeople.length === 0) {
+                const noneMsg = document.createElement('div');
+                noneMsg.className = 'popup-none';
+                noneMsg.textContent = 'None';
+                assignedBubbles.appendChild(noneMsg);
+            } else {
+                // Show assigned people
+                assignedPeople.forEach(personId => {
+                    const person = app.people.find(p => p.id === personId);
+                    if (person) {
+                        const bubble = document.createElement('div');
+                        bubble.className = 'popup-bubble';
+                        bubble.innerHTML = `<div class="initials ${person.color}">${person.initials}</div>`;
+                        bubble.addEventListener('click', () => togglePersonAssignment(itemId, person.id));
+                        assignedBubbles.appendChild(bubble);
+                    }
+                });
+            }
+            
+            assignedSection.appendChild(assignedBubbles);
+            popup.appendChild(assignedSection);
+            
+            // Rest of the function remains the same...
+            // Divider
+            const divider = document.createElement('div');
+            divider.className = 'popup-divider';
+            popup.appendChild(divider);
+            
+            // Unassigned section
+            const unassignedSection = document.createElement('div');
+            unassignedSection.className = 'popup-section';
+            
+            // Create header container with title and add all button
+            const unassignedHeaderContainer = document.createElement('div');
+            unassignedHeaderContainer.className = 'popup-header-container';
+            
+            const unassignedTitle = document.createElement('div');
+            unassignedTitle.className = 'popup-section-title';
+            unassignedTitle.textContent = 'Unassigned';
+            unassignedHeaderContainer.appendChild(unassignedTitle);
+            
+            // Show unassigned people
+            const unassignedPeople = app.people.filter(person => !assignedPeople.includes(person.id));
+            
+            // Add Add All button
+            if (unassignedPeople.length > 0) {
+                const addAllBtn = document.createElement('button');
+                addAllBtn.className = 'popup-action-btn';
+                addAllBtn.textContent = 'ADD ALL';
+                addAllBtn.addEventListener('click', () => addAllAssignments(itemId));
+                unassignedHeaderContainer.appendChild(addAllBtn);
+            }
+            
+            unassignedSection.appendChild(unassignedHeaderContainer);
+            
+            const unassignedBubbles = document.createElement('div');
+            unassignedBubbles.className = 'popup-bubbles';
+            
+            if (unassignedPeople.length > 0) {
+                unassignedPeople.forEach(person => {
+                    const bubble = document.createElement('div');
+                    bubble.className = 'popup-bubble';
+                    bubble.innerHTML = `<div class="initials ${person.color}">${person.initials}</div>`;
+                    bubble.addEventListener('click', () => togglePersonAssignment(itemId, person.id));
+                    unassignedBubbles.appendChild(bubble);
+                });
+            }
+            
+            unassignedSection.appendChild(unassignedBubbles);
+            popup.appendChild(unassignedSection);
+            
+            return popup;
+        }
+
+        function clearAllAssignments(itemId) {
+            app.assignments[itemId] = [];
+            renderItems();
+            updateSummary();
+        }
+
+        function addAllAssignments(itemId) {
+            itemId = parseInt(itemId);
+            
+            // Initialize assignments array if it doesn't exist
+            if (!app.assignments[itemId]) {
+                app.assignments[itemId] = [];
+            }
+            
+            // Get all unassigned people
+            const assignedPeople = app.assignments[itemId] || [];
+            const unassignedPeople = app.people.filter(person => !assignedPeople.includes(person.id));
+            
+            // Add all unassigned people to assignments
+            unassignedPeople.forEach(person => {
+                if (!app.assignments[itemId].includes(person.id)) {
+                    app.assignments[itemId].push(person.id);
+                }
+            });
+            
+            renderItems();
+            updateSummary();
+        }
+
+        function toggleAssignment(itemId) {
+            if (app.activeItem === itemId) {
+                app.activeItem = null;
+            } else {
+                app.activeItem = itemId;
+            }
+            renderItems();
+        }
+
+        function togglePersonAssignment(itemId, personId) {
+            itemId = parseInt(itemId);
+            
+            // Initialize assignments array if it doesn't exist
+            if (!app.assignments[itemId]) {
+                app.assignments[itemId] = [];
+            }
+            
+            // Toggle the person's assignment
+            if (app.assignments[itemId].includes(personId)) {
+                app.assignments[itemId] = app.assignments[itemId].filter(id => id !== personId);
+            } else {
+                app.assignments[itemId].push(personId);
+            }
+            
+            renderItems();
+            updateSummary();
+        }
+
+        function calculateOwed() {
+            const owed = {};
+            
+            // Initialize prices to 0
+            app.people.forEach(person => {
+                owed[person.id] = 0;
+            });
+            
+            // Calculate prices based on assignments
+            Object.entries(app.assignments).forEach(([itemId, assigned]) => {
+                const item = app.items.find(i => i.id === parseInt(itemId));
+                if (item && assigned.length > 0) {
+                    const splitPrice = item.price / assigned.length;
+                    assigned.forEach(personId => {
+                        owed[personId] = (owed[personId] || 0) + splitPrice;
+                    });
+                }
+            });
+            return owed;
+        }
+        
+        function calculateTotal() {
+            return app.items.reduce((sum, item) => sum + item.price, 0);
+        }
+        
+        function updateSummary() {
+            summaryContainer.innerHTML = '';
+            
+            const owedAmounts = calculateOwed();
+            let settledTotal = 0;
+            
+            // Add each person's row
+            app.people.forEach(person => {
+                const price = owedAmounts[person.id] || 0;
+                settledTotal += price;
+                
+                const row = document.createElement('div');
+                row.className = 'summary-item';
+                row.innerHTML = `
+                    <div class="person-info">
+                        <div class="initials ${person.color}">${person.initials}</div>
+                        <span style="margin-left: 8px;">${person.name}</span>
+                    </div>
+                    <div>£${price.toFixed(2)}</div>
+                `;
+                summaryContainer.appendChild(row);
+            });
+
+            // Add total row
+            const totalRow = document.createElement('div');
+            totalRow.className = 'summary-item total-row';
+            
+            if (app.people.length === 0) {
+                totalRow.innerHTML = `
+                    <div style="text-align: center; color: red;">You have not added any people</div>
+                `;
+            } else {
+                const assignedItemCount = Object.keys(app.assignments).length;
+                if (app.items.length > assignedItemCount) {
+                    totalRow.innerHTML = `
+                        <div style="color: red;">Total (not all items have been split!)</div>
+                        <div>£${settledTotal.toFixed(2)}</div>
+                    `;
+                } else {
+                    totalRow.innerHTML = `
+                        <div>Total</div>
+                        <div>£${settledTotal.toFixed(2)}</div>
+                    `;
+                }
+            }
+            summaryContainer.appendChild(totalRow);
+        }
+    
+    </script>
+</body>
+</html>
