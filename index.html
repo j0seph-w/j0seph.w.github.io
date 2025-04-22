@@ -208,6 +208,48 @@
         .popup-section {
             margin-bottom: 12px;
         }
+
+        .popup-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .popup-action-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .popup-item-info-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 16px;
+            justify-content: space-between;
+        }
+
+        .popup-item-quantity {
+            font-weight: 500;
+            color: #666;
+        }
+
+        .popup-item-name {
+            flex: 1;
+            font-weight: 600;
+            font-size: 16px;
+            margin-left: 8px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 65%;
+            text-align: left;
+        }
+
+        .popup-item-price {
+            font-weight: 500;
+            color: #333;
+            margin-left: auto;
+        }
         
         .popup-section-title {
             font-size: 12px;
@@ -228,6 +270,7 @@
             display: flex;
             flex-wrap: wrap;
             gap: 8px;
+            min-height: 42px; /* This ensures the section maintains a minimum height */
         }
         
         .popup-bubble {
@@ -279,9 +322,7 @@
         }
 
         .popup-close-btn {
-            position: absolute;
-            top: 4px; /* Adjusted from 8px to move it up slightly */
-            right: 8px;
+            position: static; /* Change from absolute to static */
             width: 24px;
             height: 24px;
             border-radius: 50%;
@@ -294,12 +335,100 @@
             justify-content: center;
             cursor: pointer;
             color: #666;
-            z-index: 11;
         }
 
         .popup-close-btn:hover {
             background-color: #f3f4f6;
             color: #333;
+        }
+
+        /* Add these to your existing CSS */
+        .popup-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding-top: 20vh;
+            z-index: 1000;
+        }
+
+        .assignment-popup {
+            position: relative;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+            width: 90%;
+            max-width: 400px;
+            max-height: 90vh;
+            overflow-y: auto;
+            padding: 16px;
+            z-index: 1001;
+        }
+
+        .popup-item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .popup-item-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .popup-item-quantity {
+            font-weight: 500;
+            color: #666;
+            margin-right: 4px;
+        }
+
+        .popup-item-name {
+            font-weight: 600;
+            font-size: 16px;
+            margin-bottom: 4px;
+        }
+
+        .popup-item-price {
+            font-weight: 500;
+            color: #333;
+        }
+
+        .popup-item-actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        .popup-icon-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 6px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .edit-btn:hover {
+            background-color: #f3f4f6;
+        }
+
+        .delete-btn:hover {
+            background-color: #fee2e2;
+        }
+
+        .edit-btn svg {
+            fill: #4b5563;
+        }
+
+        .delete-btn svg {
+            fill: #ef4444;
         }
 
         /* Summary section */
@@ -593,6 +722,10 @@
         function renderItems() {
             itemsContainer.innerHTML = '';
             
+            // Remove any existing popups from the body
+            const existingOverlays = document.querySelectorAll('.popup-overlay');
+            existingOverlays.forEach(overlay => document.body.removeChild(overlay));
+            
             app.items.forEach(item => {
                 const itemElement = document.createElement('div');
                 itemElement.className = 'item';
@@ -634,30 +767,100 @@
                     itemElement.appendChild(indicatorsDiv);
                 }
                 
-                // Assignment popup (if active)
-                if (app.activeItem === item.id) {
-                    const popup = createAssignmentPopup(item.id);
-                    itemElement.appendChild(popup);
-                }
-                
                 itemsContainer.appendChild(itemElement);
             });
+            
+            // If there's an active item, add the popup to the body
+            if (app.activeItem !== null) {
+                const popup = createAssignmentPopup(app.activeItem);
+                document.body.appendChild(popup);
+            }
         }
 
         function createAssignmentPopup(itemId) {
+            const item = app.items.find(item => item.id === parseInt(itemId));
+            
+            // Create overlay to handle clicking outside the popup
+            const overlay = document.createElement('div');
+            overlay.className = 'popup-overlay';
+            overlay.addEventListener('click', (e) => {
+                if (e.target === overlay) {
+                    app.activeItem = null;
+                    document.body.removeChild(overlay);
+                    renderItems();
+                }
+            });
+            
             const popup = document.createElement('div');
             popup.className = 'assignment-popup';
             
-            // Add close button (X) in the corner
+            // Modify the item header part of the createAssignmentPopup function:
+            const itemHeader = document.createElement('div');
+            itemHeader.className = 'popup-header';
+
+            // Create action buttons container (left side)
+            const actionButtons = document.createElement('div');
+            actionButtons.className = 'popup-action-buttons';
+
+            // Edit button with pencil icon
+            const editButton = document.createElement('button');
+            editButton.className = 'popup-icon-btn edit-btn';
+            editButton.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" height="18" viewBox="0 0 24 24" width="18"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>';
+            editButton.addEventListener('click', () => editItem(itemId));
+            actionButtons.appendChild(editButton);
+
+            // Delete button with bin icon
+            const deleteButton = document.createElement('button');
+            deleteButton.className = 'popup-icon-btn delete-btn';
+            deleteButton.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" height="18" viewBox="0 0 24 24" width="18"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>';
+            deleteButton.addEventListener('click', () => deleteItem(itemId));
+            actionButtons.appendChild(deleteButton);
+
+            // Add close button (top right)
             const closeButton = document.createElement('button');
             closeButton.className = 'popup-close-btn';
             closeButton.innerHTML = '&times;'; // × symbol
             closeButton.addEventListener('click', () => {
                 app.activeItem = null;
+                document.body.removeChild(overlay);
                 renderItems();
             });
-            popup.appendChild(closeButton);
+
+            // Add action buttons and close button to header
+            itemHeader.appendChild(actionButtons);
+            itemHeader.appendChild(closeButton);
+            popup.appendChild(itemHeader);
+
+            // Create item info row (below header)
+            const itemInfoRow = document.createElement('div');
+            itemInfoRow.className = 'popup-item-info-row';
+
+            // Add quantity (left aligned)
+            const itemQty = document.createElement('span');
+            itemQty.className = 'popup-item-quantity';
+            itemQty.textContent = `${item.quantity}x`;
+            itemInfoRow.appendChild(itemQty);
+
+            // Add name (in the middle)
+            const itemName = document.createElement('span');
+            itemName.className = 'popup-item-name';
+            itemName.textContent = item.name;
+            itemInfoRow.appendChild(itemName);
+
+            // Add price (right aligned)
+            const itemPrice = document.createElement('span');
+            itemPrice.className = 'popup-item-price';
+            itemPrice.textContent = `£${item.price.toFixed(2)}`;
+            itemInfoRow.appendChild(itemPrice);
+
+            popup.appendChild(itemInfoRow);
             
+            // Add divider after the header
+            const headerDivider = document.createElement('div');
+            headerDivider.className = 'popup-divider';
+            popup.appendChild(headerDivider);
+            
+            // Rest of the popup content (assignments)
             const assignedPeople = app.assignments[itemId] || [];
             
             // Assigned section
@@ -710,7 +913,6 @@
             assignedSection.appendChild(assignedBubbles);
             popup.appendChild(assignedSection);
             
-            // Rest of the function remains the same...
             // Divider
             const divider = document.createElement('div');
             divider.className = 'popup-divider';
@@ -759,7 +961,8 @@
             unassignedSection.appendChild(unassignedBubbles);
             popup.appendChild(unassignedSection);
             
-            return popup;
+            overlay.appendChild(popup);
+            return overlay;
         }
 
         function clearAllAssignments(itemId) {
@@ -817,6 +1020,36 @@
             
             renderItems();
             updateSummary();
+        }
+
+        function editItem(itemId) {
+            // This is a placeholder function - implement your edit functionality here
+            console.log(`Editing item with ID: ${itemId}`);
+            // You would typically open a form or modal to edit the item
+            // For now, let's just keep the popup open
+            event.stopPropagation(); // Prevent the popup from closing
+        }
+
+        function deleteItem(itemId) {
+            // This is a placeholder function - implement your delete functionality here
+            console.log(`Deleting item with ID: ${itemId}`);
+            
+            if (confirm(`Are you sure you want to delete this item?`)) {
+                // Remove the item from the items array
+                app.items = app.items.filter(item => item.id !== parseInt(itemId));
+                
+                // Remove any assignments for this item
+                delete app.assignments[itemId];
+                
+                // Close the popup
+                app.activeItem = null;
+                
+                // Re-render the items list
+                renderItems();
+                updateSummary();
+            }
+            
+            event.stopPropagation(); // Prevent the popup from closing if the user cancels
         }
 
         function calculateOwed() {
@@ -891,7 +1124,7 @@
             }
             summaryContainer.appendChild(totalRow);
         }
-    
+        
     </script>
 </body>
 </html>
