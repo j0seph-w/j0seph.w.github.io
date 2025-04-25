@@ -498,6 +498,7 @@
                     <button id="addPersonBtn">Add</button>
                 </div>
                 <div class="people-list" id="peopleList"></div>
+                <div class="people-list">Tap on a name to remove it!</div>
             </div>
             
             <div id="tab1" class="tab-content">
@@ -741,7 +742,7 @@
                     </div>
                     <div class="item-price">£${item.price.toFixed(2)}</div>
                 `;
-                detailsDiv.addEventListener('click', () => toggleAssignment(item.id));
+                itemElement.addEventListener('click', () => toggleAssignment(item.id));
                 itemElement.appendChild(detailsDiv);
                 
                 // Assignment indicators
