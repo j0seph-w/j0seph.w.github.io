@@ -1239,8 +1239,8 @@
             const item = app.items.find(item => item.id === parseInt(itemId));
             if (!item) return;
             
-            // Close the assignment popup
-            app.activeItem = null;
+            // Close the assignment popup temporarily
+            app.activeItem = parseInt(itemId); // Store the item ID to reopen popup later
             const existingOverlays = document.querySelectorAll('.popup-overlay');
             existingOverlays.forEach(overlay => document.body.removeChild(overlay));
             
@@ -1273,13 +1273,30 @@
                 confirmAddItem.removeEventListener('click', updateHandler);
                 confirmAddItem.addEventListener('click', addNewItem);
                 
+                // Reopen the assignment popup for this item
                 renderItems();
                 updateSummary();
             };
             
-            // Replace click handler
+            // Also modify the cancel button to reopen the popup
+            const cancelHandler = function() {
+                hideAddItemModal();
+                
+                // Reopen the assignment popup for this item
+                renderItems();
+                
+                // Reset the cancel button handler
+                cancelAddItem.removeEventListener('click', cancelHandler);
+                cancelAddItem.addEventListener('click', hideAddItemModal);
+            };
+            
+            // Replace click handlers
             confirmAddItem.removeEventListener('click', addNewItem);
             confirmAddItem.addEventListener('click', updateHandler);
+            
+            // Replace cancel button handler
+            cancelAddItem.removeEventListener('click', hideAddItemModal);
+            cancelAddItem.addEventListener('click', cancelHandler);
             
             event.stopPropagation();
         }
