@@ -569,6 +569,43 @@
         .list-item:last-child {
             border-bottom: none;
         }
+
+        .copy-btn {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background-color: #0D3D49;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 8px 12px;
+            cursor: pointer;
+            margin-bottom: 12px;
+            margin-left: auto;
+        }
+
+        .copy-btn:hover {
+            background-color: #0a2e38;
+        }
+
+        .copy-notification {
+            position: fixed;
+            bottom: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #4BB543;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 4px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: 1000;
+        }
+
+        .copy-notification.show {
+            opacity: 1;
+        }
     </style>
 </head>
 <body>
@@ -608,6 +645,12 @@
         </div>
 
         <button id="addItemBtn" class="floating-btn">+</button>
+        <button id="copyBtn" class="floating-btn" style="display: none;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+            </svg>
+        </button>
 
         <div id="addItemModal" class="add-item-modal" style="display: none;">
             <div class="modal-content">
@@ -630,6 +673,7 @@
                 </div>
             </div>
         </div>
+        <div id="copyNotification" class="copy-notification">Copied to clipboard!</div>
     </div>
 
     <script>
@@ -680,7 +724,8 @@
         const itemPrice = document.getElementById('itemPrice');
 
         const resetBtn = document.getElementById('resetBtn');
-
+        const copyBtn = document.getElementById('copyBtn');
+        const copyNotification = document.getElementById('copyNotification');
 
         // Initialize
         renderPeople();
@@ -693,6 +738,7 @@
         cancelAddItem.addEventListener('click', hideAddItemModal);
         confirmAddItem.addEventListener('click', addNewItem);
         resetBtn.addEventListener('click', resetItems);
+        copyBtn.addEventListener('click', copyToClipboard);
 
         // Event Listeners
         addPersonBtn.addEventListener('click', addPerson);
@@ -788,8 +834,13 @@
         function updateButtonVisibility() {
             if (app.currentTab === 1) {
                 addItemBtn.style.display = 'flex';
+                copyBtn.style.display = 'none';
+            } else if (app.currentTab === 2) {
+                addItemBtn.style.display = 'none';
+                copyBtn.style.display = 'flex';
             } else {
                 addItemBtn.style.display = 'none';
+                copyBtn.style.display = 'none';
             }
         }
 
@@ -1397,7 +1448,45 @@
             }
             summaryContainer.appendChild(totalRow);
         }
-        
+
+        function copyToClipboard() {
+            const summaryText = formatSummaryForClipboard();
+            
+            // Use the Clipboard API
+            navigator.clipboard.writeText(summaryText)
+                .then(() => {
+                    // Show notification
+                    copyNotification.classList.add('show');
+                    
+                    // Hide notification after 2 seconds
+                    setTimeout(() => {
+                        copyNotification.classList.remove('show');
+                    }, 2000);
+                })
+                .catch(err => {
+                    console.error('Failed to copy: ', err);
+                    alert('Failed to copy to clipboard. Please try again.');
+                });
+        }
+
+        function formatSummaryForClipboard() {
+            const owedAmounts = calculateOwed();
+            let formattedText = "Bill Summary:\n\n";
+            
+            // Add each person's amount
+            app.people.forEach(person => {
+                const price = owedAmounts[person.id] || 0;
+                formattedText += `${person.name}\t£${price.toFixed(2)}\n`;
+            });
+            
+            formattedText += '\n';
+            
+            // Calculate and add total
+            const settledTotal = Object.values(owedAmounts).reduce((sum, amount) => sum + amount, 0);
+            formattedText += `Total:\t£${settledTotal.toFixed(2)}`;
+            
+            return formattedText;
+        }
     </script>
 </body>
 </html>
